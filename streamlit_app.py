@@ -340,6 +340,7 @@ def show_results(analysis_list):
 
 def analyze_image(img_array):
     """Run DeepFace analysis on an RGB numpy array."""
+    import gc
     DeepFace = load_deepface()
 
     if img_array is None or img_array.size == 0:
@@ -349,14 +350,46 @@ def analyze_image(img_array):
     if len(img_array.shape) == 3 and img_array.shape[2] == 4:
         img_array = cv2.cvtColor(img_array, cv2.COLOR_RGBA2RGB)
 
+    # Resize image if it is too large to save memory and prevent OOM/crashes
+    max_dim = 800
+    h, w = img_array.shape[:2]
+    if max(h, w) > max_dim:
+        scale = max_dim / max(h, w)
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+        img_array = cv2.resize(img_array, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
     img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
 
-    result = DeepFace.analyze(
-        img_bgr,
-        actions=["age", "emotion", "gender", "race"],
-        enforce_detection=False,
-        silent=True,
-    )
+    try:
+        result = DeepFace.analyze(
+            img_bgr,
+            actions=["age", "emotion", "gender", "race"],
+            enforce_detection=False,
+            silent=True,
+        )
+    except Exception as e:
+        # Fallback to minimal analysis in case of model load failure or memory issues
+        try:
+            result = DeepFace.analyze(
+                img_bgr,
+                actions=["age", "emotion", "gender"],
+                enforce_detection=False,
+                silent=True,
+            )
+        except Exception as inner_e:
+            raise RuntimeError(f"DeepFace analysis failed: {inner_e}")
+
+    # Clear TensorFlow/Keras session & collect garbage to free up memory
+    try:
+        import tensorflow as tf
+        tf.keras.backend.clear_session()
+    except Exception:
+        pass
+    gc.collect()
+
+    if not result:
+        return []
 
     if isinstance(result, dict):
         result = [result]
