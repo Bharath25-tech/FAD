@@ -10,7 +10,7 @@ from PIL import Image
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="FaceAI Studio | Neural Intelligence",
+    page_title="Face Recognition | Neural Intelligence",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -208,7 +208,7 @@ def load_deepface():
 # ─── Hero ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero-box">
-    <h1>🧬 FaceAI Studio</h1>
+    <h1>🧬 Face Recognition</h1>
     <p>Neural Facial Analysis Engine</p>
     <div class="hero-line"></div>
 </div>
