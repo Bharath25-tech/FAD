@@ -441,7 +441,7 @@ if "🖼️" in mode:
             with st.spinner("🧠 DECODING NEURAL FEATURES..."):
                 try:
                     results = analyze_image(img_array)
-                    show_results(results)
+                    show_results(results, actions)
                     st.success("✅ DECODING COMPLETE")
                 except Exception as e:
                     st.error(f"ENGINE ERROR: {e}")
@@ -473,7 +473,7 @@ else:
             with st.spinner("📡 ESTABLISHING NEURAL LINK..."):
                 try:
                     results = analyze_image(img_array)
-                    show_results(results)
+                    show_results(results, actions)
                     st.success("✅ BIOMETRIC DATA EXTRACTED")
                 except Exception as e:
                     st.error(f"CAPTURE ERROR: {e}")
