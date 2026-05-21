@@ -1,8 +1,8 @@
-streamlit
-deepface
+streamlit==1.32.0
+deepface==0.0.93
+tensorflow==2.15.0
+tf-keras==2.15.0
 opencv-python-headless
-tensorflow
-tf-keras
 numpy
 pandas
 Pillow
