@@ -200,9 +200,8 @@ section[data-testid="stSidebar"] {
 """, unsafe_allow_html=True)
 
 # ─── Lazy-load DeepFace (heavy import) ────────────────────────────────────────
-@st.cache_resource(show_spinner=False)
 def load_deepface():
-    """Import DeepFace once and cache the module."""
+    """Import DeepFace once and return the module."""
     from deepface import DeepFace
     return DeepFace
 
