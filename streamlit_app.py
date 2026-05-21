@@ -247,6 +247,19 @@ with st.sidebar:
     st.markdown("### 🛠️ CONFIGURATION")
     mode = st.radio("Operation Mode", ["🖼️ Image Upload", "📸 Camera Capture"])
 
+    st.markdown("### 🧠 NEURAL MODELS")
+    st.caption("Toggle attributes to decode. Loading heavy models on public servers may take a few seconds.")
+    run_emotion = st.checkbox("🎭 Mood & Emotion (Lightweight)", value=True)
+    run_age = st.checkbox("📅 Estimated Age (Heavy)", value=False)
+    run_gender = st.checkbox("👤 Gender (Heavy)", value=False)
+    run_race = st.checkbox("🌍 Ethnicity (Heavy)", value=False)
+
+    actions = []
+    if run_emotion: actions.append("emotion")
+    if run_age: actions.append("age")
+    if run_gender: actions.append("gender")
+    if run_race: actions.append("race")
+
     st.markdown("---")
     st.markdown("### 📊 ANALYTICS")
     st.info(
@@ -270,7 +283,7 @@ EMOTION_DATA = {
 }
 
 
-def show_results(analysis_list):
+def show_results(analysis_list, actions):
     """Render analysis results with premium custom HTML cards."""
     if not analysis_list:
         st.warning("No face detected. Please ensure the face is clearly visible.")
@@ -285,29 +298,34 @@ def show_results(analysis_list):
 
     emo_icon, _ = EMOTION_DATA.get(emotion, ('🤔', '#818cf8'))
 
+    age_val = age if 'age' in actions else "OFF"
+    emotion_val = str(emotion).capitalize() if 'emotion' in actions else "OFF"
+    race_val = str(race).capitalize() if 'race' in actions else "OFF"
+    emo_display_icon = emo_icon if 'emotion' in actions else "🤔"
+
     # Result cards grid
     st.markdown(f"""
     <div class="res-grid" style="grid-template-columns: repeat(3, 1fr);">
         <div class="res-card">
             <span class="res-icon">📅</span>
             <div class="res-label">Estimated Age</div>
-            <div class="res-value">{age}</div>
+            <div class="res-value">{age_val}</div>
         </div>
         <div class="res-card">
-            <span class="res-icon">{emo_icon}</span>
+            <span class="res-icon">{emo_display_icon}</span>
             <div class="res-label">Mood</div>
-            <div class="res-value">{str(emotion).capitalize()}</div>
+            <div class="res-value">{emotion_val}</div>
         </div>
         <div class="res-card">
             <span class="res-icon">🌍</span>
             <div class="res-label">Ethnicity</div>
-            <div class="res-value">{str(race).capitalize()}</div>
+            <div class="res-value">{race_val}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     # Emotion bars
-    if emotions:
+    if 'emotion' in actions and emotions:
         st.markdown('<div class="emo-section">', unsafe_allow_html=True)
         st.markdown(
             '<div style="margin-bottom:1rem;font-size:0.7rem;font-weight:700;'
