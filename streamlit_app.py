@@ -356,8 +356,10 @@ def show_results(analysis_list, actions):
         st.markdown('</div>', unsafe_allow_html=True)
 
 
-def analyze_image(img_array):
+def analyze_image(img_array, actions=None):
     """Run DeepFace analysis on an RGB numpy array."""
+    if not actions:
+        actions = ["emotion"]  # default lightweight
     import gc
     DeepFace = load_deepface()
 
@@ -382,7 +384,7 @@ def analyze_image(img_array):
     try:
         result = DeepFace.analyze(
             img_bgr,
-            actions=["age", "emotion", "gender", "race"],
+            actions=actions,
             enforce_detection=False,
             silent=True,
         )
@@ -391,7 +393,7 @@ def analyze_image(img_array):
         try:
             result = DeepFace.analyze(
                 img_bgr,
-                actions=["age", "emotion", "gender"],
+                actions=[a for a in actions if a != "race"],
                 enforce_detection=False,
                 silent=True,
             )
@@ -440,7 +442,7 @@ if "🖼️" in mode:
         with col_right:
             with st.spinner("🧠 DECODING NEURAL FEATURES..."):
                 try:
-                    results = analyze_image(img_array)
+                    results = analyze_image(img_array, actions)
                     show_results(results, actions)
                     st.success("✅ DECODING COMPLETE")
                 except Exception as e:
@@ -472,7 +474,7 @@ else:
         with col_2:
             with st.spinner("📡 ESTABLISHING NEURAL LINK..."):
                 try:
-                    results = analyze_image(img_array)
+                    results = analyze_image(img_array, actions)
                     show_results(results, actions)
                     st.success("✅ BIOMETRIC DATA EXTRACTED")
                 except Exception as e:
