@@ -1,30 +1,25 @@
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
-os.environ["STREAMLIT_SERVER_HEADLESS"] = "true"
 
 import streamlit as st
 import numpy as np
 from PIL import Image
 
-import cv2
-import tensorflow as tf
-tf.get_logger().setLevel("ERROR")
 
-
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # PAGE CONFIG
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 st.set_page_config(
     page_title="FaceAI Studio",
     page_icon="🧬",
-    layout="wide"
+    layout="centered"
 )
 
 
-# ─────────────────────────────────────────────────────────────
-# SAFE DEEPFACE LOADER
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# SAFE DEEPFACE LOADER (lazy import)
+# ─────────────────────────────────────────────
 @st.cache_resource(show_spinner=False)
 def load_deepface():
     try:
@@ -35,23 +30,21 @@ def load_deepface():
         return None
 
 
-# ─────────────────────────────────────────────────────────────
-# ANALYSIS FUNCTION
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# ANALYSIS FUNCTION (NO CV2)
+# ─────────────────────────────────────────────
 def analyze_image(img_array):
     DeepFace = load_deepface()
 
     if DeepFace is None:
-        raise RuntimeError("DeepFace not loaded")
+        raise RuntimeError("DeepFace not available")
 
     if img_array is None or img_array.size == 0:
         raise ValueError("Empty image")
 
-    # Convert RGB → BGR for OpenCV
-    img_bgr = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-
+    # DeepFace accepts RGB numpy array directly
     result = DeepFace.analyze(
-        img_bgr,
+        img_array,
         actions=["age", "gender", "emotion", "race"],
         enforce_detection=False,
         silent=True
@@ -63,57 +56,61 @@ def analyze_image(img_array):
     return result
 
 
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # RESULT DISPLAY
-# ─────────────────────────────────────────────────────────────
-def show_results(res_list):
-    if not res_list:
+# ─────────────────────────────────────────────
+def show_results(result):
+    if not result:
         st.warning("No face detected")
         return
 
-    res = res_list[0]
+    r = result[0]
 
-    st.subheader("Results")
+    st.subheader("🧠 Analysis Result")
 
-    st.write("Age:", res.get("age"))
-    st.write("Gender:", res.get("dominant_gender"))
-    st.write("Emotion:", res.get("dominant_emotion"))
-    st.write("Race:", res.get("dominant_race"))
+    st.write(f"**Age:** {r.get('age', '--')}")
+    st.write(f"**Gender:** {r.get('dominant_gender', '--')}")
+    st.write(f"**Emotion:** {r.get('dominant_emotion', '--')}")
+    st.write(f"**Race:** {r.get('dominant_race', '--')}")
 
 
-# ─────────────────────────────────────────────────────────────
-# UI
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
+# UI HEADER
+# ─────────────────────────────────────────────
 st.title("🧬 FaceAI Studio")
+st.caption("DeepFace powered facial analysis (Streamlit Cloud Safe)")
 
-mode = st.radio("Choose Mode", ["Upload Image", "Camera"])
 
-# ─────────────────────────────────────────────────────────────
+mode = st.radio("Select Mode", ["Upload Image", "Camera"])
+
+
+# ─────────────────────────────────────────────
 # UPLOAD MODE
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 if mode == "Upload Image":
-    uploaded = st.file_uploader("Upload Image", type=["jpg", "png", "jpeg"])
+    file = st.file_uploader("Upload an image", type=["jpg", "jpeg", "png"])
 
-    if uploaded:
-        image = Image.open(uploaded).convert("RGB")
+    if file:
+        image = Image.open(file).convert("RGB")
         img_array = np.array(image)
 
         st.image(image, caption="Input Image", use_container_width=True)
 
         if st.button("Analyze"):
-            with st.spinner("Analyzing..."):
+            with st.spinner("Analyzing face..."):
                 try:
                     result = analyze_image(img_array)
                     show_results(result)
+                    st.success("Done")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
 
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # CAMERA MODE
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 else:
-    camera = st.camera_input("Capture Image")
+    camera = st.camera_input("Take a photo")
 
     if camera:
         image = Image.open(camera).convert("RGB")
@@ -122,16 +119,17 @@ else:
         st.image(image, caption="Captured Image", use_container_width=True)
 
         if st.button("Analyze"):
-            with st.spinner("Analyzing..."):
+            with st.spinner("Analyzing face..."):
                 try:
                     result = analyze_image(img_array)
                     show_results(result)
+                    st.success("Done")
                 except Exception as e:
                     st.error(f"Error: {e}")
 
 
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 # FOOTER
-# ─────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────
 st.markdown("---")
-st.caption("FaceAI Studio • DeepFace + Streamlit Cloud Safe Build")
+st.caption("FaceAI Studio • Stable Streamlit Cloud Build")
