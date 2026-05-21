@@ -10,7 +10,7 @@ from PIL import Image
 
 # ─── Page Config ──────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Face Recognition | Neural Intelligence",
+    page_title="Facial Age Prediction | Neural Intelligence",
     page_icon="🧬",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -208,7 +208,7 @@ def load_deepface():
 # ─── Hero ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero-box">
-    <h1>🧬 Face Recognition</h1>
+    <h1>🧬 Facial Age Prediction</h1>
     <p>Neural Facial Analysis Engine</p>
     <div class="hero-line"></div>
 </div>
